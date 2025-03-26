@@ -1,31 +1,103 @@
 <!DOCTYPE html>
-<html lang="en"  data-bs-theme="dark">
+<html lang="en" data-bs-theme="dark">
 <head>
-      <%- include('./partials/head') %>
+    <%- include('./partials/head') %>
     <title>Sign In</title>
+    <style>
+        .auth-container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 2rem;
+            border-radius: 10px;
+            background-color: var(--bs-body-bg);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .auth-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+        .form-control:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+        .btn-primary {
+            width: 100%;
+            padding: 0.5rem;
+            font-weight: 500;
+        }
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 1.5rem 0;
+        }
+        .divider::before, .divider::after {
+            content: "";
+            flex: 1;
+            border-bottom: 1px solid var(--bs-border-color);
+        }
+        .divider-text {
+            padding: 0 1rem;
+            color: var(--bs-secondary);
+        }
+    </style>
 </head>
-<body>
-   
+<body class="bg-body-tertiary">
     <%- include('./partials/nav') %>
    
-    <div class="container mt-4" >
-        <form action="/user/signin" method="post">
-            <div class="mb-3">
-              <label for="exampleInputEmail1" class="form-label">Email address</label>
-              <input type="email" name="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
-              <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
-            </div>
-            <div class="mb-3">
-              <label for="exampleInputPassword1" class="form-label">Password</label>
-              <input type="password" name="password" class="form-control" id="exampleInputPassword1">
-            </div>
-           
-            <button type="submit" class="btn btn-primary">Submit</button>
-          </form>
+    <main class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="auth-container">
+                    <div class="auth-header">
+                        <h2 class="mb-3">Welcome Back</h2>
+                        <p class="text-muted">Sign in to continue to your account</p>
+                    </div>
 
-    </div>
+                    <% if (typeof error !== 'undefined') { %>
+                        <div class="alert alert-danger" role="alert">
+                            <%= error %>
+                        </div>
+                    <% } %>
+
+                    <form action="/user/signin" method="post">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email address</label>
+                            <input type="email" name="email" class="form-control" id="email" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" name="password" class="form-control" id="password" required>
+                            <div class="form-text text-end">
+                                <a href="/user/forgot-password" class="text-decoration-none">Forgot password?</a>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mb-3">
+                            <button type="submit" class="btn btn-primary py-2">
+                                Sign In
+                            </button>
+                        </div>
+
+                        <div class="divider">
+                            <span class="divider-text">OR</span>
+                        </div>
+
+                        <div class="auth-footer">
+                            <p class="mb-0">Don't have an account? 
+                                <a href="/user/signup" class="text-decoration-none">Sign up</a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
 
     <%- include('./partials/script') %>
-    
 </body>
 </html>

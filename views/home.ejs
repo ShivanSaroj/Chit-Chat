@@ -1,34 +1,102 @@
 <!DOCTYPE html>
-<html lang="en"  data-bs-theme="dark">
+<html lang="en" data-bs-theme="dark">
 <head>
-      <%- include('./partials/head') %>
-    <title>Home</title>
+    <%- include('./partials/head') %>
+    <title>Blog Posts</title>
+    <style>
+        .card-hover-effect:hover {
+            transform: translateY(-5px);
+            transition: transform 0.3s ease;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .card-img-crop {
+            object-fit: cover;
+            object-position: center;
+        }
+        .author-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+    </style>
 </head>
-<body>
+<body class="bg-body-tertiary">
     <%- include('./partials/nav') %>
    
- 
-   <div class="container mt-3 ">
-    <div class="row row-col-4">
-    <% blogs.forEach(blog => { %>
-     <div class="col">
-      <div class="card col mt-3" style="width: 18rem; height: 19rem;" class="border border-white">
-        <img src="<%= blog.coverImageURL %>" class="card-img-top" style="height: 10rem; width: 100%;" >
-        <div class="card-body">
-          <h5 class="card-title"><%= blog.title %></h5>
-          <a href="/blog/<%= blog._id%>" class="btn btn-primary">View</a>
+    <main class="container py-4">
+        <!-- Header Section -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="display-5 fw-bold mb-0">Latest Blog Posts</h1>
+            
+            <div class="d-flex align-items-center gap-3">
+                <% if (locals.user) { %>
+                    <a href="/blog/create" class="btn btn-success">
+                        <i class="bi bi-plus-lg"></i> Create New Post
+                    </a>
+                <% }  %>
+            </div>
         </div>
-      </div>
-    </div>
-     
-    <% }) %>
 
-  </div>
-   </div>
+        <% if (blogs.length === 0) { %>
+        <div class="text-center py-5 my-5">
+            <h3 class="text-muted">No blog posts yet</h3>
+            <p class="lead">Be the first to create one!</p>
+            <% if (locals.user) { %>
+            <a href="/blog/create" class="btn btn-primary btn-lg mt-3">
+                <i class="bi bi-plus-lg"></i> Create Your First Post
+            </a>
+            <% } else { %>
+            <a href="/user/login" class="btn btn-primary btn-lg mt-3">
+                <i class="bi bi-box-arrow-in-right"></i> Login to Create Posts
+            </a>
+            <% } %>
+        </div>
+        <% } else { %>
 
-   
-      <%- include('./partials/script') %>
-   
-    
+        <div class="row g-4">
+            <% blogs.forEach(blog => { %>
+            <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+                <div class="card h-100 border-light shadow-sm card-hover-effect overflow-hidden">
+                    <div class="position-relative">
+                        <img src="<%= blog.coverImageURL %>" 
+                             class="card-img-top img-fluid card-img-crop" 
+                             style="height: 180px;"
+                             alt="<%= blog.title %>">
+                        <div class="author-badge">
+                            <span>
+                                <% if (blog.createdBy && blog.createdBy.fullname) { %>
+                                    <%= blog.createdBy.fullname.split(' ')[0] %>
+                                <% } else { %>
+                                    Unknown
+                                <% } %>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title text-truncate"><%= blog.title %></h5>
+                        <p class="card-text text-muted small mb-3">
+                            <%= blog.body.substring(0, 100) %>...
+                        </p>
+                        <div class="mt-auto d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <%= new Date(blog.createdAt).toLocaleDateString() %>
+                            </small>
+                            <a href="/blog/<%= blog._id%>" class="btn btn-sm btn-outline-primary">
+                                Read More <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <% }) %>
+        </div>
+        <% } %>
+    </main>
+
+    <%- include('./partials/script') %>
 </body>
 </html>

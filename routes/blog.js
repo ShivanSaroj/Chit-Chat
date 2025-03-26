@@ -24,16 +24,31 @@ return res.render('addBlog',{
 });
 });
 
-router.get('/:id',async(req, res)=>{
+// In your route handler
+router.get('/:id', async (req, res) => {
+  try {
+      const blog = await Blog.findById(req.params.id)
+          .populate('createdBy', 'fullname') // This ensures createdBy is populated
+          .exec();
+      
+      if (!blog) {
+          return res.status(404).send('Blog not found');
+      }
 
-    const blog= await Blog.findById(req.params.id).populate('createdBy');
-   const comments= await Comment.find({blogId:req.params.id}).populate("createdBy")
-    return res.render('blog', {
-        user: req.user,
-        blog,
-        comments
-    });
-} )
+      const comments = await Comment.find({ blog: req.params.id })
+          .populate('createdBy', 'fullname')
+          .sort({ createdAt: -1 });
+
+      res.render('blog', { 
+          blog,
+          comments,
+          user: req.user 
+      });
+  } catch (error) {
+      console.error(error);
+      res.status(500).send('Server Error');
+  }
+});
 
 
 router.post('/', upload.single("coverImage"),  async (req, res)=>{

@@ -1,35 +1,105 @@
 <!DOCTYPE html>
-<html lang="en"  data-bs-theme="dark">
+<html lang="en" data-bs-theme="dark">
 <head>
-      <%- include('./partials/head') %>
+    <%- include('./partials/head') %>
     <title>Sign Up</title>
+    <style>
+        .profile-preview {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 50%;
+            display: none;
+            margin-bottom: 15px;
+            border: 3px solid #495057;
+        }
+        .upload-area {
+            cursor: pointer;
+            border: 2px dashed #6c757d;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        .upload-area:hover {
+            border-color: #0d6efd;
+            background-color: rgba(13, 110, 253, 0.05);
+        }
+    </style>
 </head>
 <body>
-   
     <%- include('./partials/nav') %>
    
-    <div class="container mt-4" >
-        <form action="/user/signup" method="post">
-            <div class="mb-3">
-                <label for="fullname" class="form-label">Full Name</label>
-                <input type="text" name="fullname" class="form-control" id="fullname" aria-describedby="fullname">
-                  </div>
-            <div class="mb-3">
-              <label for="exampleInputEmail1" class="form-label">Email address</label>
-              <input type="email" name="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
-              <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
-            </div>
-            <div class="mb-3">
-              <label for="exampleInputPassword1" class="form-label">Password</label>
-              <input type="password" name="password" class="form-control" id="exampleInputPassword1">
-            </div>
-           
-            <button type="submit" class="btn btn-primary">Submit</button>
-          </form>
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="card shadow">
+                    <div class="card-body p-4">
+                        <h2 class="card-title text-center mb-4">Create Account</h2>
+                        
+                        <form action="/user/signup" method="post" enctype="multipart/form-data">
+                            <!-- Profile Image Upload -->
+                            <div class="text-center mb-4">
+                                <img id="profilePreview" class="profile-preview" alt="Profile preview">
+                                <div class="upload-area" onclick="document.getElementById('profileImage').click()">
+                                    <i class="bi bi-camera fs-1"></i>
+                                    <p class="mb-0">Click to upload profile picture</p>
+                                    <small class="text-muted">(Recommended: 300x300 px)</small>
+                                </div>
+                                <input type="file" name="profileImage" id="profileImage" class="d-none" accept="image/*">
+                            </div>
 
+                            <!-- Full Name -->
+                            <div class="mb-3">
+                                <label for="fullname" class="form-label">Full Name</label>
+                                <input type="text" name="fullname" class="form-control" id="fullname" required>
+                            </div>
+
+                            <!-- Email -->
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email address</label>
+                                <input type="email" name="email" class="form-control" id="email" aria-describedby="emailHelp" required>
+                                <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
+                            </div>
+
+                            <!-- Password -->
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" name="password" class="form-control" id="password" required>
+                                <div class="form-text">At least 8 characters</div>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">Create Account</button>
+                            </div>
+                        </form>
+
+                        <div class="text-center mt-3">
+                            <p class="mb-0">Already have an account? <a href="/user/login">Log in</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <%- include('./partials/script') %>
     
+    <script>
+        // Profile image preview
+        document.getElementById('profileImage').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const preview = document.getElementById('profilePreview');
+                    preview.src = event.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
 </body>
 </html>
