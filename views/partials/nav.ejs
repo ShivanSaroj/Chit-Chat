@@ -12,7 +12,6 @@
               <li class="nav-item">
                   <a class="nav-link active" href="/">Home</a>
               </li>
-             
               <% if (locals.user && user.role === 'ADMIN') { %>
               <li class="nav-item">
                   <a class="nav-link" href="/admin">Admin</a>
@@ -22,7 +21,18 @@
           
           <div class="d-flex align-items-center">
               <% if (locals.user) { %>
-                
+                  <!-- Clean Messages icon -->
+                  <div class="position-relative me-3">
+                      <a href="/chat" class="btn btn-outline-light btn-sm position-relative" 
+                         style="border: none; background: transparent;">
+                          <i class="bi bi-chat-dots" style="font-size: 1.2rem;"></i>
+                          <!-- Unread badge -->
+                          <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
+                                id="unreadBadge" style="display: none; font-size: 0.6rem;">
+                              0
+                          </span>
+                      </a>
+                  </div>
                   
                   <div class="dropdown">
                       <img src="<%= user.profileImageURL %>" 
@@ -39,12 +49,15 @@
                                        class="me-2">
                                   <div>
                                       <h6 class="mb-0" style="font-size: 1rem;"><%= user.fullname %></h6>
-                                      <small class="text-muted" style="font-size: 0.8rem;"><%= user.email %></small>
                                   </div>
                               </div>
                           </li>
                           <li><hr class="dropdown-divider" style="margin: 0.5rem 0;"></li>
-                         
+                          <li>
+                              <a class="dropdown-item" href="/user/profile" style="padding: 0.5rem 1.5rem;">
+                                  <i class="bi bi-person me-2"></i>Profile
+                              </a>
+                          </li>
                           <li>
                               <a class="dropdown-item text-danger" href="/user/logout" style="padding: 0.5rem 1.5rem;">
                                   <i class="bi bi-box-arrow-right me-2"></i>Logout
@@ -60,6 +73,16 @@
       </div>
   </div>
 </nav>
+
+<% if (locals.user) { %>
+<!-- Floating Chat Button -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050;">
+    <a href="/chat" class="btn btn-primary rounded-circle shadow" 
+       style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+        <i class="bi bi-chat-dots fs-4"></i>
+    </a>
+</div>
+<% } %>
 
 <script>
   // Add hover effect with JavaScript if needed

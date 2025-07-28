@@ -58,6 +58,16 @@
                     <% } %>
                     <div class="card-body">
                         <h1 class="card-title display-5"><%= blog.title %></h1>
+                        <% if (user && blog.createdBy._id.toString() === user._id.toString()) { %>
+                            <div class="mb-3">
+                                <a href="/blog/edit/<%= blog._id %>" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-pencil"></i> Edit Post
+                                </a>
+                                <button onclick="deleteBlog('<%= blog._id %>')" class="btn btn-outline-danger btn-sm ms-2">
+                                    <i class="bi bi-trash"></i> Delete Post
+                                </button>
+                            </div>
+                        <% } %>
                         <div class="author-info">
                             <% if (blog.createdBy && blog.createdBy.profileImageURL) { %>
                                 <img src="<%= blog.createdBy.profileImageURL %>" width="50" height="50" class="rounded-circle me-2" alt="Author">
@@ -71,59 +81,60 @@
                                 <small class="text-muted"><%= new Date(blog.createdAt).toLocaleDateString() %></small>
                             </div>
                         </div>
-                        <div class="card-text">
-                            <pre><%= blog.body %></pre>
+                        <div class="card-text blog-content">
+                            <%- blog.body %>
                         </div>
                     </div>
                 </div>
 
-                <!-- Comments Section -->
-                <div class="card shadow-sm">
-                    <div class="card-header">
-                        <h3 class="mb-0">Comments (<%= comments.length %>)</h3>
-                    </div>
-                    <div class="card-body">
-                        <% if (locals.user) { %>
-                        <!-- Comment Form -->
-                        <form action="/blog/comment/<%= blog._id %>" method="post" class="mb-4">
-                            <div class="input-group">
-                                <input type="text" name="content" class="form-control" placeholder="Enter your comment..." required>
-                                <button type="submit" class="btn btn-primary">Post</button>
-                            </div>
-                        </form>
-                        <% } %>
+              
+<!-- Comments Section -->
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h3 class="mb-0">Comments (<%= comments.length %>)</h3>
+    </div>
+    <div class="card-body">
+        <% if (locals.user) { %>
+        <!-- Comment Form -->
+        <form action="/blog/comment/<%= blog._id %>" method="post" class="mb-4">
+            <div class="input-group">
+                <input type="text" name="content" class="form-control" placeholder="Enter your comment..." required>
+                <button type="submit" class="btn btn-primary">Post</button>
+            </div>
+        </form>
+        <% } %>
 
-                        <!-- Comments List -->
-                        <div class="mt-3">
-                            <% comments.forEach(comment => { %>
-                            <div class="d-flex mb-3">
-                                <% if (comment.createdBy && comment.createdBy.profileImageURL) { %>
-                                    <img src="<%= comment.createdBy.profileImageURL %>" width="50" height="50" class="rounded-circle me-3" alt="Commenter">
-                                <% } else { %>
-                                    <div class="comment-profile-placeholder me-3">
-                                        <%= comment.createdBy && comment.createdBy.fullname ? comment.createdBy.fullname.charAt(0).toUpperCase() : '?' %>
-                                    </div>
-                                <% } %>
-                                <div class="flex-grow-1">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <h6 class="mb-0 fw-bold"><%= comment.createdBy ? comment.createdBy.fullname : 'Unknown User' %></h6>
-                                        <small class="text-muted"><%= new Date(comment.createdAt).toLocaleString() %></small>
-                                    </div>
-                                    <div class="bg-body p-3 rounded">
-                                        <p class="mb-0"><%= comment.content %></p>
-                                    </div>
-                                </div>
-                            </div>
-                            <% }) %>
-                            
-                            <% if (comments.length === 0) { %>
-                            <div class="text-center py-4">
-                                <p class="text-muted">No comments yet. Be the first to comment!</p>
-                            </div>
-                            <% } %>
-                        </div>
+        <!-- Comments List -->
+        <div class="mt-3">
+            <% comments.forEach(comment => { %>
+            <div class="d-flex mb-3">
+                <% if (comment.createdBy.profileImageURL) { %>
+                    <img src="<%= comment.createdBy.profileImageURL %>" width="50" height="50" class="rounded-circle me-3" alt="Commenter">
+                <% } else { %>
+                    <div class="comment-profile-placeholder me-3">
+                        <%= comment.createdBy.fullname.charAt(0).toUpperCase() %>
+                    </div>
+                <% } %>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <h6 class="mb-0 fw-bold"><%= comment.createdBy.fullname %></h6>
+                        <small class="text-muted"><%= new Date(comment.createdAt).toLocaleString() %></small>
+                    </div>
+                    <div class="bg-body p-3 rounded">
+                        <p class="mb-0"><%= comment.content %></p>
                     </div>
                 </div>
+            </div>
+            <% }) %>
+            
+            <% if (comments.length === 0) { %>
+            <div class="text-center py-4">
+                <p class="text-muted">No comments yet. Be the first to comment!</p>
+            </div>
+            <% } %>
+        </div>
+    </div>
+</div>
             </div>
         </div>
     </main>

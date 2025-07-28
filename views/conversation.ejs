@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <%- include('./partials/head') %>
+    <title>Chat with <%= receiver.fullname %></title>
+    <style>
+        .chat-container {
+            height: 500px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            background-color: var(--bs-body-bg);
+        }
+        .message {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: flex-start;
+        }
+        .message.sent {
+            justify-content: flex-end;
+        }
+        .message.received {
+            justify-content: flex-start;
+        }
+        .message-content {
+            max-width: 70%;
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            word-wrap: break-word;
+        }
+        .message.sent .message-content {
+            background-color: #0d6efd;
+            color: white;
+            border-bottom-right-radius: 0.25rem;
+        }
+        .message.received .message-content {
+            background-color: #6c757d;
+            color: white;
+            border-bottom-left-radius: 0.25rem;
+        }
+        .message-time {
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+<body class="bg-body-tertiary">
+    <%- include('./partials/nav') %>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="card">
+                    <div class="card-header d-flex align-items-center">
+                        <a href="/chat" class="btn btn-outline-secondary btn-sm me-3">
+                            <i class="bi bi-arrow-left"></i> Back
+                        </a>
+                        <img src="<%= receiver.profileImageURL %>" 
+                             class="rounded-circle me-3" 
+                             style="width: 40px; height: 40px; object-fit: cover;">
+                        <h5 class="mb-0"><%= receiver.fullname %></h5>
+                    </div>
+                    
+                    <div class="card-body p-0">
+                        <div class="chat-container" id="chatContainer">
+                            <% if (messages && messages.length > 0) { %>
+                                <% messages.forEach(message => { %>
+                                    <div class="message <%= message.sender._id.toString() === user._id.toString() ? 'sent' : 'received' %>">
+                                        <div>
+                                            <div class="message-content">
+                                                <%= message.content %>
+                                            </div>
+                                            <div class="message-time text-center">
+                                                <%= new Date(message.createdAt).toLocaleString() %>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <% }) %>
+                            <% } else { %>
+                                <div class="text-center text-muted py-4">
+                                    <i class="bi bi-chat-dots display-4"></i>
+                                    <p class="mt-2">No messages yet. Start the conversation!</p>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer">
+                        <form id="messageForm" class="d-flex">
+                            <input type="hidden" id="receiverId" value="<%= receiver._id %>">
+                            <input type="text" 
+                                   id="messageInput" 
+                                   class="form-control me-2" 
+                                   placeholder="Type your message..." 
+                                   required>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-send"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('./partials/script') %>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const messageForm = document.getElementById('messageForm');
+            const messageInput = document.getElementById('messageInput');
+            const chatContainer = document.getElementById('chatContainer');
+            const receiverId = document.getElementById('receiverId').value;
+
+            // Scroll to bottom of chat
+            function scrollToBottom() {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+
+            // Initial scroll to bottom
+            scrollToBottom();
+
+            // Send message
+            messageForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const content = messageInput.value.trim();
+                if (!content) {
+                    alert('Please enter a message');
+                    return;
+                }
+
+                // Disable form while sending
+                messageInput.disabled = true;
+                const submitBtn = messageForm.querySelector('button[type="submit"]');
+                if (submitBtn) submitBtn.disabled = true;
+
+                try {
+                    const response = await fetch('/chat/send', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            receiverId: receiverId,
+                            content: content
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Add message to chat
+                        const messageDiv = document.createElement('div');
+                        messageDiv.className = 'message sent';
+                        messageDiv.innerHTML = `
+                            <div>
+                                <div class="message-content">
+                                    ${content}
+                                </div>
+                                <div class="message-time text-center">
+                                    ${new Date().toLocaleString()}
+                                </div>
+                            </div>
+                        `;
+                        chatContainer.appendChild(messageDiv);
+                        
+                        // Clear input and scroll to bottom
+                        messageInput.value = '';
+                        scrollToBottom();
+                    } else {
+                        alert(data.message || 'Error sending message');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error sending message');
+                } finally {
+                    // Re-enable form
+                    messageInput.disabled = false;
+                    if (submitBtn) submitBtn.disabled = false;
+                    messageInput.focus();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
+
+
+

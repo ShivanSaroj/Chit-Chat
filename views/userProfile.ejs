@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <%- include('./partials/head') %>
+    <title><%= profileUser.fullname %> - Profile</title>
+</head>
+<body class="bg-body-tertiary">
+    <%- include('./partials/nav') %>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <img src="<%= profileUser.profileImageURL %>" 
+                             class="rounded-circle img-fluid" 
+                             style="width: 150px; height: 150px; object-fit: cover;"
+                             alt="Profile Image">
+                        <h5 class="my-3"><%= profileUser.fullname %></h5>
+                        <p class="text-muted mb-4">Member since <%= profileUser.createdAt.toLocaleDateString() %></p>
+                        
+                        <!-- Follow/Unfollow Button -->
+                        <% if (!isOwnProfile && locals.user) { %>
+                            <button class="btn <%= isFollowing ? 'btn-outline-primary' : 'btn-primary' %> follow-btn mb-2" 
+                                    data-user-id="<%= profileUser._id %>"
+                                    data-following="<%= isFollowing %>">
+                                <%= isFollowing ? 'Unfollow' : 'Follow' %>
+                            </button>
+                            
+                            <!-- Message Button (only if you follow them) -->
+                            <% if (isFollowing) { %>
+                                <br>
+                                <a href="/chat/conversation/<%= profileUser._id %>" class="btn btn-outline-success">
+                                    <i class="bi bi-chat-dots"></i> Send Message
+                                </a>
+                            <% } %>
+                        <% } %>
+                        
+                        <!-- Stats -->
+                        <div class="row text-center mt-3">
+                            <div class="col-6">
+                                <h6 class="mb-0 followers-count"><%= profileUser.followersCount || 0 %></h6>
+                                <small class="text-muted">Followers</small>
+                            </div>
+                            <div class="col-6">
+                                <h6 class="mb-0"><%= profileUser.followingCount || 0 %></h6>
+                                <small class="text-muted">Following</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-8">
+                <!-- User's posts -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5><%= profileUser.fullname %>'s Posts (<%= totalPosts %>)</h5>
+                    </div>
+                    <div class="card-body">
+                        <% if (userPosts && userPosts.length > 0) { %>
+                            <% userPosts.forEach(post => { %>
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <a href="/blog/<%= post._id %>" class="text-decoration-none">
+                                                <%= post.title %>
+                                            </a>
+                                        </h6>
+                                        <p class="card-text text-muted">
+                                            <%- post.body.substring(0, 150) %>...
+                                        </p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">
+                                                <i class="bi bi-calendar"></i> <%= new Date(post.createdAt).toLocaleDateString() %>
+                                            </small>
+                                            <div class="d-flex gap-3">
+                                                <small class="text-muted">
+                                                    <i class="bi bi-heart"></i> <%= post.likesCount || 0 %>
+                                                </small>
+                                                <small class="text-muted">
+                                                    <i class="bi bi-chat"></i> <%= post.commentCount || 0 %>
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }) %>
+                            
+                            <!-- Pagination for posts -->
+                            <% if (totalPages > 1) { %>
+                            <nav aria-label="Posts pagination" class="mt-4">
+                                <ul class="pagination justify-content-center">
+                                    <% if (hasPrevPage) { %>
+                                    <li class="page-item">
+                                        <a class="page-link" href="/user/profile/<%= profileUser._id %>?page=<%= prevPage %>">Previous</a>
+                                    </li>
+                                    <% } else { %>
+                                    <li class="page-item disabled">
+                                        <span class="page-link">Previous</span>
+                                    </li>
+                                    <% } %>
+                                    
+                                    <% for (let i = 1; i <= totalPages; i++) { %>
+                                    <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                                        <a class="page-link" href="/user/profile/<%= profileUser._id %>?page=<%= i %>"><%= i %></a>
+                                    </li>
+                                    <% } %>
+                                    
+                                    <% if (hasNextPage) { %>
+                                    <li class="page-item">
+                                        <a class="page-link" href="/user/profile/<%= profileUser._id %>?page=<%= nextPage %>">Next</a>
+                                    </li>
+                                    <% } else { %>
+                                    <li class="page-item disabled">
+                                        <span class="page-link">Next</span>
+                                    </li>
+                                    <% } %>
+                                </ul>
+                            </nav>
+                            <% } %>
+                        <% } else { %>
+                            <div class="text-center py-4">
+                                <i class="bi bi-file-earmark-text display-1 text-muted"></i>
+                                <h6 class="mt-3 text-muted">No posts yet</h6>
+                                <p class="text-muted"><%= profileUser.fullname %> hasn't shared anything yet.</p>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('./partials/script') %>
+    
+    <script>
+    // Follow/Unfollow functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const followBtn = document.querySelector('.follow-btn');
+        
+        if (followBtn) {
+            followBtn.addEventListener('click', async function() {
+                const userId = this.dataset.userId;
+                const isFollowing = this.dataset.following === 'true';
+                
+                try {
+                    const response = await fetch(`/user/follow/${userId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        if (data.isFollowing) {
+                            this.textContent = 'Unfollow';
+                            this.className = 'btn btn-outline-primary follow-btn';
+                        } else {
+                            this.textContent = 'Follow';
+                            this.className = 'btn btn-primary follow-btn';
+                        }
+                        
+                        this.dataset.following = data.isFollowing;
+                        document.querySelector('.followers-count').textContent = data.followersCount;
+                    } else {
+                        alert(data.message || 'Error following user');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error following user');
+                }
+            });
+        }
+    });
+    </script>
+</body>
+</html>
+
+
+

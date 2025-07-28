@@ -39,6 +39,22 @@ const userSchema = new Schema({
         enum: ["USER", "ADMIN"],
         default: "USER"
     },
+    followers: [{
+        type: Schema.Types.ObjectId,
+        ref: 'user'
+    }],
+    following: [{
+        type: Schema.Types.ObjectId,
+        ref: 'user'
+    }],
+    followersCount: {
+        type: Number,
+        default: 0
+    },
+    followingCount: {
+        type: Number,
+        default: 0
+    },
     resetPasswordToken: {
         type: String,
         select: false

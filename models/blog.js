@@ -5,7 +5,7 @@ const blogSchema= new Schema({
         type: String,
         required: true,
     },
-    body:{
+    body: {
         type: String,
         required: true,
     },
@@ -15,11 +15,21 @@ const blogSchema= new Schema({
     },
     createdBy: {
         type: Schema.Types.ObjectId,
-        ref: "user"
-
+        ref: 'user',
     },
-
-}, {timestamps: true});
+    likes: [{
+        type: Schema.Types.ObjectId,
+        ref: 'user'
+    }],
+    likesCount: {
+        type: Number,
+        default: 0
+    },
+    commentCount: {
+        type: Number,
+        default: 0
+    }
+}, { timestamps: true });
 
 const Blog= model('blog', blogSchema)
 

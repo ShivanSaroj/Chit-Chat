@@ -13,90 +13,277 @@
             object-fit: cover;
             object-position: center;
         }
-        .author-badge {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: rgba(0, 0, 0, 0.7);
-            padding: 3px 8px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-        }
+        /* Remove .author-badge CSS */
     </style>
 </head>
 <body class="bg-body-tertiary">
     <%- include('./partials/nav') %>
    
     <main class="container py-4">
-        <!-- Header Section -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="display-5 fw-bold mb-0">Latest Blog Posts</h1>
-            
-            <div class="d-flex align-items-center gap-3">
+        <!-- LinkedIn-style header -->
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
                 <% if (locals.user) { %>
-                    <a href="/blog/create" class="btn btn-success">
-                        <i class="bi bi-plus-lg"></i> Create New Post
-                    </a>
-                <% }  %>
-            </div>
-        </div>
-
-        <% if (blogs.length === 0) { %>
-        <div class="text-center py-5 my-5">
-            <h3 class="text-muted">No blog posts yet</h3>
-            <p class="lead">Be the first to create one!</p>
-            <% if (locals.user) { %>
-            <a href="/blog/create" class="btn btn-primary btn-lg mt-3">
-                <i class="bi bi-plus-lg"></i> Create Your First Post
-            </a>
-            <% } else { %>
-            <a href="/user/login" class="btn btn-primary btn-lg mt-3">
-                <i class="bi bi-box-arrow-in-right"></i> Login to Create Posts
-            </a>
-            <% } %>
-        </div>
-        <% } else { %>
-
-        <div class="row g-4">
-            <% blogs.forEach(blog => { %>
-            <div class="col-12 col-md-6 col-lg-4 col-xl-3">
-                <div class="card h-100 border-light shadow-sm card-hover-effect overflow-hidden">
-                    <div class="position-relative">
-                        <img src="<%= blog.coverImageURL %>" 
-                             class="card-img-top img-fluid card-img-crop" 
-                             style="height: 180px;"
-                             alt="<%= blog.title %>">
-                        <div class="author-badge">
-                            <span>
-                                <% if (blog.createdBy && blog.createdBy.fullname) { %>
-                                    <%= blog.createdBy.fullname.split(' ')[0] %>
-                                <% } else { %>
-                                    Unknown
-                                <% } %>
-                            </span>
-                        </div>
-                    </div>
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title text-truncate"><%= blog.title %></h5>
-                        <p class="card-text text-muted small mb-3">
-                            <%= blog.body.substring(0, 100) %>...
-                        </p>
-                        <div class="mt-auto d-flex justify-content-between align-items-center">
-                            <small class="text-muted">
-                                <%= new Date(blog.createdAt).toLocaleDateString() %>
-                            </small>
-                            <a href="/blog/<%= blog._id%>" class="btn btn-sm btn-outline-primary">
-                                Read More <i class="bi bi-arrow-right"></i>
-                            </a>
+                <!-- Create post card -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <img src="<%= user.profileImageURL %>" 
+                                 class="rounded-circle me-3" 
+                                 style="width: 48px; height: 48px; object-fit: cover;"
+                                 onerror="this.src='https://via.placeholder.com/48x48/6c757d/ffffff?text=User'">
+                            <div class="flex-grow-1">
+                                <a href="/blog/add-new" class="btn btn-outline-secondary w-100 text-start rounded-pill">
+                                    Start a post...
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
+                <% } %>
+
+                <!-- Blog posts feed -->
+                <% if (blogs.length === 0) { %>
+                <div class="text-center py-5">
+                    <h3 class="text-muted">No posts yet</h3>
+                    <p class="lead">Be the first to share something!</p>
+                </div>
+                <% } else { %>
+                
+                <% blogs.forEach(blog => { %>
+                <div class="card mb-4 shadow-sm">
+                    <!-- Post header -->
+                    <div class="card-body pb-0">
+                        <div class="d-flex align-items-center mb-3">
+                            <img src="<%= blog.createdBy?.profileImageURL || 'https://via.placeholder.com/48x48/6c757d/ffffff?text=User' %>" 
+                                 class="rounded-circle me-3" 
+                                 style="width: 48px; height: 48px; object-fit: cover;">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0 fw-bold">
+                                    <a href="/user/profile/<%= blog.createdBy?._id %>" class="text-decoration-none">
+                                        <%= blog.createdBy?.fullname || 'Unknown Author' %>
+                                    </a>
+                                </h6>
+                                <small class="text-muted"><%= new Date(blog.createdAt).toLocaleDateString() %></small>
+                            </div>
+                            
+                            <!-- Connection Status / Follow Button -->
+                            <% if (locals.user && blog.createdBy && blog.createdBy._id.toString() !== user._id.toString()) { %>
+                                <% if (blog.isFollowingAuthor) { %>
+                                    <!-- Connection indicator -->
+                                    <div class="d-flex align-items-center me-2">
+                                        <i class="bi bi-person-check-fill text-success me-1"></i>
+                                        <small class="text-success">Following</small>
+                                    </div>
+                                    <!-- Message button -->
+                                    <a href="/chat/conversation/<%= blog.createdBy._id %>" 
+                                       class="btn btn-outline-primary btn-sm me-2">
+                                        <i class="bi bi-chat-dots me-1"></i>
+                                        Message
+                                    </a>
+                                <% } else { %>
+                                    <!-- Follow button -->
+                                    <button class="btn btn-outline-primary btn-sm follow-author-btn me-2" 
+                                            data-user-id="<%= blog.createdBy._id %>"
+                                            data-following="false">
+                                        <i class="bi bi-person-plus me-1"></i>
+                                        Follow
+                                    </button>
+                                <% } %>
+                            <% } %>
+                            
+                            <!-- Edit/Delete dropdown for own posts -->
+                            <% if (locals.user && blog.createdBy && blog.createdBy._id && blog.createdBy._id.toString() === user._id.toString()) { %>
+                            <div class="dropdown">
+                                <button class="btn btn-link text-muted" data-bs-toggle="dropdown">
+                                    <i class="bi bi-three-dots"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="/blog/edit/<%= blog._id %>">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </a></li>
+                                    <li><button class="dropdown-item text-danger" onclick="deleteBlog('<%= blog._id %>')">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button></li>
+                                </ul>
+                            </div>
+                            <% } %>
+                        </div>
+                        
+                        <!-- Post content -->
+                        <h5 class="card-title">
+                            <a href="/blog/<%= blog._id %>" class="text-decoration-none">
+                                <%= blog.title %>
+                            </a>
+                        </h5>
+                        <div class="card-text">
+                            <% 
+                                // Strip HTML for length calculation but keep original for display
+                                const textOnly = blog.body.replace(/<[^>]*>/g, '');
+                                const maxLength = 150;
+                                const isLongContent = textOnly.length > maxLength;
+                                
+                                // For truncation, we'll use a simple approach
+                                let truncatedContent = blog.body;
+                                if (isLongContent) {
+                                    // Find a good breaking point around maxLength characters
+                                    const breakPoint = blog.body.indexOf(' ', maxLength);
+                                    truncatedContent = breakPoint > 0 ? blog.body.substring(0, breakPoint) : blog.body.substring(0, maxLength);
+                                }
+                            %>
+                            
+                            <div class="content-preview" id="preview-<%= blog._id %>">
+                                <%- truncatedContent %>
+                                <% if (isLongContent) { %>
+                                    <span class="text-truncate-indicator">...</span>
+                                <% } %>
+                            </div>
+                            
+                            <% if (isLongContent) { %>
+                                <div class="content-full" id="full-<%= blog._id %>" style="display: none;">
+                                    <%- blog.body %>
+                                </div>
+                                
+                                <button class="btn btn-link p-0 text-primary see-more-btn" 
+                                        onclick="toggleContent('<%= blog._id %>')"
+                                        id="toggle-btn-<%= blog._id %>">
+                                    See more
+                                </button>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <!-- Post image - only show if coverImageURL exists -->
+                    <% if (blog.coverImageURL && blog.coverImageURL !== '/uploads/undefined' && blog.coverImageURL !== '/uploads/null') { %>
+                    <img src="<%= blog.coverImageURL %>" class="card-img-bottom" style="max-height: 400px; object-fit: cover;">
+                    <% } %>
+
+                    <!-- Engagement bar -->
+                    <div class="card-body pt-2">
+                        <!-- Action buttons with icons and counts only -->
+                        <div class="d-flex justify-content-around border-top pt-3">
+                            <button class="btn btn-link text-decoration-none p-2 like-btn d-flex align-items-center" 
+                                    data-blog-id="<%= blog._id %>"
+                                    data-liked="false">
+                                <% 
+                                    let isUserLiked = false;
+                                    if (locals.user && locals.user._id && blog.likes && Array.isArray(blog.likes)) {
+                                        isUserLiked = blog.likes.some(like => {
+                                            const likeId = like._id ? like._id.toString() : like.toString();
+                                            return likeId === user._id.toString();
+                                        });
+                                    }
+                                %>
+                                <i class="bi <%= isUserLiked ? 'bi-heart-fill text-danger' : 'bi-heart' %> me-1"></i>
+                                <span class="like-count"><%= blog.likesCount || 0 %></span>
+                            </button>
+                            
+                            <a href="/blog/<%= blog._id %>" class="btn btn-link text-decoration-none p-2 d-flex align-items-center">
+                                <i class="bi bi-chat me-1"></i>
+                                <span><%= blog.commentCount || 0 %></span>
+                            </a>
+                            
+                            <button class="btn btn-link text-decoration-none p-2 d-flex align-items-center">
+                                <i class="bi bi-share me-1"></i>
+                                <span>0</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <% }) %>
+                
+                <!-- Pagination -->
+                <% if (totalPages > 1) { %>
+                <nav aria-label="Blog pagination" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <% if (hasPrevPage) { %>
+                        <li class="page-item">
+                            <a class="page-link" href="/?page=<%= prevPage %>">Previous</a>
+                        </li>
+                        <% } else { %>
+                        <li class="page-item disabled">
+                            <span class="page-link">Previous</span>
+                        </li>
+                        <% } %>
+                        
+                        <% for (let i = 1; i <= totalPages; i++) { %>
+                        <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                            <a class="page-link" href="/?page=<%= i %>"><%= i %></a>
+                        </li>
+                        <% } %>
+                        
+                        <% if (hasNextPage) { %>
+                        <li class="page-item">
+                            <a class="page-link" href="/?page=<%= nextPage %>">Next</a>
+                        </li>
+                        <% } else { %>
+                        <li class="page-item disabled">
+                            <span class="page-link">Next</span>
+                        </li>
+                        <% } %>
+                    </ul>
+                </nav>
+                <% } %>
+                
+                <% } %>
             </div>
-            <% }) %>
         </div>
-        <% } %>
     </main>
 
     <%- include('./partials/script') %>
+    <script>
+function toggleContent(blogId) {
+    const preview = document.getElementById(`preview-${blogId}`);
+    const full = document.getElementById(`full-${blogId}`);
+    const btn = document.getElementById(`toggle-btn-${blogId}`);
+    
+    if (full.style.display === 'none') {
+        // Show full content
+        preview.style.display = 'none';
+        full.style.display = 'block';
+        btn.textContent = 'See less';
+    } else {
+        // Show preview content
+        preview.style.display = 'block';
+        full.style.display = 'none';
+        btn.textContent = 'See more';
+    }
+}
+
+// Like button functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Existing like button code...
+    document.querySelectorAll('.like-btn').forEach(button => {
+        button.addEventListener('click', async function() {
+            const blogId = this.dataset.blogId;
+            const likeCount = this.querySelector('.like-count');
+            const icon = this.querySelector('i');
+            
+            try {
+                const response = await fetch(`/blog/like/${blogId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    likeCount.textContent = data.likesCount;
+                    
+                    if (data.isLiked) {
+                        icon.className = 'bi bi-heart-fill text-danger me-1';
+                    } else {
+                        icon.className = 'bi bi-heart me-1';
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+    });
+});
+</script>
 </body>
 </html>
