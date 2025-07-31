@@ -12,17 +12,21 @@
             padding: 1rem;
             background-color: var(--bs-body-bg);
         }
-        .message {
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: flex-start;
-        }
-        .message.sent {
-            justify-content: flex-end;
-        }
-        .message.received {
-            justify-content: flex-start;
-        }
+                    .message {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                margin-bottom: 1rem;
+            }
+
+            .message.sent {
+                align-items: flex-end; /* This aligns message to the right */
+            }
+
+            .message.received {
+                align-items: flex-start;
+            }
+
         .message-content {
             max-width: 70%;
             padding: 0.75rem 1rem;
@@ -67,16 +71,16 @@
                         <div class="chat-container" id="chatContainer">
                             <% if (messages && messages.length > 0) { %>
                                 <% messages.forEach(message => { %>
-                                    <div class="message <%= message.sender._id.toString() === user._id.toString() ? 'sent' : 'received' %>">
-                                        <div>
-                                            <div class="message-content">
-                                                <%= message.content %>
-                                            </div>
-                                            <div class="message-time text-center">
-                                                <%= new Date(message.createdAt).toLocaleString() %>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <div class="message <%= message.sender._id.toString() === user._id.toString() ? 'sent' : 'received' %>" data-message-id="<%= message._id %>">
+                                <div class="message-content position-relative">
+                                    <%- message.content %>
+                                </div>
+                                <div class="message-time text-center w-100">
+                                    <%= new Date(message.createdAt).toLocaleString() %>
+                                </div>
+                            </div>
+                                                                
+                                   
                                 <% }) %>
                             <% } else { %>
                                 <div class="text-center text-muted py-4">
@@ -84,6 +88,8 @@
                                     <p class="mt-2">No messages yet. Start the conversation!</p>
                                 </div>
                             <% } %>
+
+                            
                         </div>
                     </div>
                     
@@ -108,6 +114,43 @@
     <%- include('./partials/script') %>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+
+            const pendingShare = JSON.parse(sessionStorage.getItem('pendingShare') || '{}');
+    
+    if (pendingShare.message) {
+        // Pre-fill the message input with shared content
+        const messageInput = document.getElementById('messageInput');
+        if (messageInput) {
+            messageInput.value = pendingShare.message;
+            messageInput.focus();
+        }
+        
+        // Clear the pending share
+        sessionStorage.removeItem('pendingShare');
+        sessionStorage.removeItem('shareData');
+        
+        // Show a small notification
+        const shareNotification = document.createElement('div');
+        shareNotification.className = 'alert alert-success alert-dismissible fade show';
+        shareNotification.innerHTML = `
+            <i class="bi bi-check-circle me-2"></i>
+            Post ready to share! Click send when ready.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        const messagesContainer = document.querySelector('.messages-container');
+        if (messagesContainer) {
+            messagesContainer.insertBefore(shareNotification, messagesContainer.firstChild);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (shareNotification.parentNode) {
+
+                    shareNotification.remove();
+                }
+            }, 5000);
+        }
+    }
             const messageForm = document.getElementById('messageForm');
             const messageInput = document.getElementById('messageInput');
             const chatContainer = document.getElementById('chatContainer');
@@ -124,6 +167,8 @@
             // Send message
             messageForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
+
+                console.log("Message input: ", messageInput.value);
                 
                 const content = messageInput.value.trim();
                 if (!content) {
@@ -137,6 +182,8 @@
                 if (submitBtn) submitBtn.disabled = true;
 
                 try {
+
+                    console.log('Sending message:', content);
                     const response = await fetch('/chat/send', {
                         method: 'POST',
                         headers: {

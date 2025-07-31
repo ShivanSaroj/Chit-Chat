@@ -16,6 +16,19 @@ const messageSchema = new Schema({
         required: true,
         trim: true
     },
+    messageType: {
+        type: String,
+        enum: ['text', 'shared_post'],
+        default: 'text'
+    },
+    sharedPost: {
+        blogId: {
+            type: Schema.Types.ObjectId,
+            ref: 'Blog'
+        },
+        title: String,
+        url: String
+    },
     isRead: {
         type: Boolean,
         default: false

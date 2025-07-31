@@ -13,6 +13,21 @@
             object-fit: cover;
             object-position: center;
         }
+        .card-text {
+            box-shadow: none !important;
+            border: none !important;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+        .like-btn {
+        box-shadow: none !important;
+        outline: none !important;
+        }
+        .like-btn:focus, .like-btn:active {
+        box-shadow: none !important;
+        outline: none !important;
+        }
         /* Remove .author-badge CSS */
     </style>
 </head>
@@ -117,40 +132,9 @@
                             </a>
                         </h5>
                         <div class="card-text">
-                            <% 
-                                // Strip HTML for length calculation but keep original for display
-                                const textOnly = blog.body.replace(/<[^>]*>/g, '');
-                                const maxLength = 150;
-                                const isLongContent = textOnly.length > maxLength;
-                                
-                                // For truncation, we'll use a simple approach
-                                let truncatedContent = blog.body;
-                                if (isLongContent) {
-                                    // Find a good breaking point around maxLength characters
-                                    const breakPoint = blog.body.indexOf(' ', maxLength);
-                                    truncatedContent = breakPoint > 0 ? blog.body.substring(0, breakPoint) : blog.body.substring(0, maxLength);
-                                }
-                            %>
-                            
-                            <div class="content-preview" id="preview-<%= blog._id %>">
-                                <%- truncatedContent %>
-                                <% if (isLongContent) { %>
-                                    <span class="text-truncate-indicator">...</span>
-                                <% } %>
-                            </div>
-                            
-                            <% if (isLongContent) { %>
-                                <div class="content-full" id="full-<%= blog._id %>" style="display: none;">
-                                    <%- blog.body %>
-                                </div>
-                                
-                                <button class="btn btn-link p-0 text-primary see-more-btn" 
-                                        onclick="toggleContent('<%= blog._id %>')"
-                                        id="toggle-btn-<%= blog._id %>">
-                                    See more
-                                </button>
-                            <% } %>
+                        <%- blog.body %>
                         </div>
+
                     </div>
 
                     <!-- Post image - only show if coverImageURL exists -->
@@ -183,10 +167,13 @@
                                 <span><%= blog.commentCount || 0 %></span>
                             </a>
                             
-                            <button class="btn btn-link text-decoration-none p-2 d-flex align-items-center">
-                                <i class="bi bi-share me-1"></i>
-                                <span>0</span>
-                            </button>
+                            <button class="btn btn-link text-decoration-none p-2 d-flex align-items-center share-btn" 
+                                data-blog-id="<%= blog._id %>"
+                                data-blog-title="<%= blog.title %>"
+                                data-blog-url="<%= `http://localhost:8000/blog/${blog._id}` %>">
+                            <i class="bi bi-share me-1"></i>
+                            <span>Share</span>
+                        </button>
                         </div>
                     </div>
                 </div>
@@ -232,6 +219,35 @@
 
     <%- include('./partials/script') %>
     <script>
+
+        document.addEventListener('DOMContentLoaded', function() {
+    // Existing like button code stays the same...
+    
+    // Share button functionality
+    document.querySelectorAll('.share-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const blogId = this.dataset.blogId;
+            const blogTitle = this.dataset.blogTitle;
+            const blogUrl = this.dataset.blogUrl;
+            
+            // Store share data in sessionStorage for the chat page
+            const shareData = {
+                type: 'blog_post',
+                blogId: blogId,
+                title: blogTitle,
+                url: blogUrl,
+               message: `Check out this post: "${blogTitle}" - <a href="${blogUrl}" target="_blank">${blogUrl}</a>`
+
+            };
+            
+            sessionStorage.setItem('shareData', JSON.stringify(shareData));
+            
+            // Redirect to chat page
+            window.location.href = '/chat?share=true';
+        });
+    });
+});
+
 function toggleContent(blogId) {
     const preview = document.getElementById(`preview-${blogId}`);
     const full = document.getElementById(`full-${blogId}`);

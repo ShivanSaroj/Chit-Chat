@@ -13,19 +13,47 @@ const checkAuth = (req, res, next) => {
 };
 
 // Get chat page - shows list of people you follow (who you can message)
+const mongoose = require('mongoose');
+
 router.get('/', checkAuth, async (req, res) => {
     try {
         const user = await User.findById(req.user._id)
-            .populate('following', 'fullname profileImageURL'); // Changed from 'followers' to 'following'
-        
-        if (!user) {
-            return res.redirect('/');
-        }
+            .populate('following', 'fullname profileImageURL');
+
+        if (!user) return res.redirect('/');
+
+        const receiverId = new mongoose.Types.ObjectId(req.user._id);
+
+        const unreadCounts = await Message.aggregate([
+            {
+                $match: {
+                    receiver: receiverId,
+                    isRead: false
+                }
+            },
+            {
+                $group: {
+                    _id: '$sender',
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
+
+        const unreadMap = {};
+        unreadCounts.forEach(entry => {
+            unreadMap[entry._id.toString()] = entry.count;
+        });
+
+        // Check if this is a share request
+        const isSharing = req.query.share === 'true';
 
         res.render('chat', {
             user,
-            followers: user.following // Now shows people you follow
+            followers: user.following,
+            unreadMap,
+            isSharing // Pass this to the template
         });
+
     } catch (error) {
         console.error('Chat page error:', error);
         res.redirect('/');
@@ -82,7 +110,7 @@ router.get('/conversation/:userId', checkAuth, async (req, res) => {
 // Send a message
 router.post('/send', checkAuth, async (req, res) => {
     try {
-        console.log('Request body:', req); // Debug log
+        console.log('Request body:', req.body); // Debug log
         // const { receiverId, content } = req.body;
         const receiverId = req.body.receiverId;
         const content = req.body.content;
@@ -134,6 +162,31 @@ router.post('/send', checkAuth, async (req, res) => {
         });
     }
 });
+
+// Get unread message count for current user
+router.get('/unread-count', checkAuth, async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        // Count messages where current user is receiver and message is unread
+        const unreadCount = await Message.countDocuments({
+            receiver: userId,
+            isRead: false
+        });
+
+        res.json({
+            success: true,
+            unreadCount
+        });
+    } catch (error) {
+        console.error('Unread count error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch unread message count'
+        });
+    }
+});
+
 
 module.exports = router;
 

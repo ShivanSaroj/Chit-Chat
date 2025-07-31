@@ -1,101 +1,65 @@
-<!-- views/partials/nav.ejs -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container">
-      <a class="navbar-brand" href="/">Chit-Chat</a>
-      
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-          <span class="navbar-toggler-icon"></span>
-      </button>
-      
-      <div class="collapse navbar-collapse" id="navbarContent">
-          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-              <li class="nav-item">
-                  <a class="nav-link active" href="/">Home</a>
+  <div class="container-fluid px-3">
+    <a class="navbar-brand" href="/">Chit-Chat</a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarContent">
+      <!-- Left Nav -->
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link active" href="/">Home</a>
+        </li>
+        <% if (locals.user && user.role === 'ADMIN') { %>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin">Admin</a>
+          </li>
+        <% } %>
+      </ul>
+
+      <!-- Right Nav -->
+      <% if (locals.user) { %>
+        <ul class="navbar-nav d-flex align-items-center">
+          <!-- Chat Icon -->
+          <li class="nav-item me-3 position-relative">
+            <a href="/chat" class="nav-link position-relative">
+              <i class="bi bi-chat-dots fs-5"></i>
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
+                    id="unreadBadge" style="display: none; font-size: 0.6rem;">
+                0
+              </span>
+            </a>
+          </li>
+
+          <!-- Profile Dropdown -->
+          <li class="nav-item dropdown">
+            <a href="#" class="nav-link dropdown-toggle d-flex align-items-center" id="navbarProfile" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="<%= user.profileImageURL %>" 
+                   alt="Profile"
+                   class="rounded-circle"
+                   style="width: 36px; height: 36px; object-fit: cover; border: 2px solid #0d6efd;">
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarProfile" style="min-width: 250px;">
+              <li class="px-3 py-2 d-flex align-items-center">
+                <img src="<%= user.profileImageURL %>" class="rounded-circle me-2" style="width: 50px; height: 50px; object-fit: cover;">
+                <div>
+                  <h6 class="mb-0"><%= user.fullname %></h6>
+                </div>
               </li>
-              <% if (locals.user && user.role === 'ADMIN') { %>
-              <li class="nav-item">
-                  <a class="nav-link" href="/admin">Admin</a>
-              </li>
-              <% } %>
-          </ul>
-          
-          <div class="d-flex align-items-center">
-              <% if (locals.user) { %>
-                  <!-- Clean Messages icon -->
-                  <div class="position-relative me-3">
-                      <a href="/chat" class="btn btn-outline-light btn-sm position-relative" 
-                         style="border: none; background: transparent;">
-                          <i class="bi bi-chat-dots" style="font-size: 1.2rem;"></i>
-                          <!-- Unread badge -->
-                          <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
-                                id="unreadBadge" style="display: none; font-size: 0.6rem;">
-                              0
-                          </span>
-                      </a>
-                  </div>
-                  
-                  <div class="dropdown">
-                      <img src="<%= user.profileImageURL %>" 
-                           style="width: 36px; height: 36px; object-fit: cover; border-radius: 50%; border: 2px solid #0d6efd; cursor: pointer;"
-                           id="profileDropdown"
-                           data-bs-toggle="dropdown"
-                           aria-expanded="false"
-                           alt="Profile">
-                      <ul class="dropdown-menu dropdown-menu-end" style="min-width: 250px; border: none; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
-                          <li>
-                              <div class="d-flex align-items-center px-3 py-2">
-                                  <img src="<%= user.profileImageURL %>" 
-                                       style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%;" 
-                                       class="me-2">
-                                  <div>
-                                      <h6 class="mb-0" style="font-size: 1rem;"><%= user.fullname %></h6>
-                                  </div>
-                              </div>
-                          </li>
-                          <li><hr class="dropdown-divider" style="margin: 0.5rem 0;"></li>
-                          <li>
-                              <a class="dropdown-item" href="/user/profile" style="padding: 0.5rem 1.5rem;">
-                                  <i class="bi bi-person me-2"></i>Profile
-                              </a>
-                          </li>
-                          <li>
-                              <a class="dropdown-item text-danger" href="/user/logout" style="padding: 0.5rem 1.5rem;">
-                                  <i class="bi bi-box-arrow-right me-2"></i>Logout
-                              </a>
-                          </li>
-                      </ul>
-                  </div>
-              <% } else { %>
-                  <a href="/user/signin" class="btn btn-outline-light me-2">Login</a>
-                  <a href="/user/signup" class="btn btn-primary">Sign Up</a>
-              <% } %>
-          </div>
-      </div>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="/user/profile"><i class="bi bi-person me-2"></i>Profile</a></li>
+              <li><a class="dropdown-item text-danger" href="/user/logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+            </ul>
+          </li>
+        </ul>
+      <% } else { %>
+        <div class="d-flex">
+          <a href="/user/signin" class="btn btn-outline-light me-2">Login</a>
+          <a href="/user/signup" class="btn btn-primary">Sign Up</a>
+        </div>
+      <% } %>
+    </div>
   </div>
 </nav>
-
-<% if (locals.user) { %>
-<!-- Floating Chat Button -->
-<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050;">
-    <a href="/chat" class="btn btn-primary rounded-circle shadow" 
-       style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
-        <i class="bi bi-chat-dots fs-4"></i>
-    </a>
-</div>
-<% } %>
-
-<script>
-  // Add hover effect with JavaScript if needed
-  document.addEventListener('DOMContentLoaded', function() {
-      const profileImg = document.querySelector('img[alt="Profile"]');
-      if (profileImg) {
-          profileImg.addEventListener('mouseenter', function() {
-              this.style.transform = 'scale(1.1)';
-              this.style.transition = 'transform 0.2s ease';
-          });
-          profileImg.addEventListener('mouseleave', function() {
-              this.style.transform = 'scale(1)';
-          });
-      }
-  });
-</script>
