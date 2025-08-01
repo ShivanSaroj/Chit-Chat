@@ -78,6 +78,3 @@ Visit `http://localhost:5000` in your browser.
 ```
 
 ---
-
-
-Let me know if you'd like a version with badges, dark mode preview, GIFs, or interactive screenshots.
