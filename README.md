@@ -56,7 +56,7 @@ EMAIL_PASS=your_email_password
 ### 4. Start the server
 
 ```bash
-npm start
+npm run dev
 ```
 
 Visit `http://localhost:5000` in your browser.
